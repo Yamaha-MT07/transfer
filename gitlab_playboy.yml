@@ -17,20 +17,18 @@
       register: jobs_response
 
     - set_fact:
-        build_job_ids: "{{ jobs_response.json | json_query('[?name==`build`].id') }}"
+      build_job_id: "{{ jobs_response.json | json_query('[?name==`build`].id') | first }}"
     
     - debug:
-        var: build_job_ids
+        var: build_job_id
     
-    - name: Get latest artifact URL from build jobs
+    - name: Get latest artifact URL from build job
       uri:
-        url: "https://gitlab.com/api/v4/projects/Yamaha-MT07%2Fdevopstaspeur/jobs/{{ item }}/artifacts"
+        url: "https://gitlab.com/api/v4/projects/Yamaha-MT07%2Fdevopstaspeur/jobs/{{ build_job_id }}/artifacts"
         headers:
           PRIVATE-TOKEN: "{{ gitlab_api_token }}"
         return_content: yes
       register: artifact_response
-      loop: "{{ build_job_ids }}"
-      when: build_job_ids | length > 0
     
     - debug:
         var: artifact_response.json
