@@ -31,3 +31,30 @@
         src: "/path/to/artifact_directory/{{ artifact_name }}"
         dest: "/path/to/destination_directory"
         remote_src: yes
+/////////////////////////////////////////////////////////////////////////
+- name: Get build job IDs
+  uri:
+    url: "https://gitlab.example.com/api/v4/projects/{{ gitlab_project_id }}/jobs"
+    headers:
+      PRIVATE-TOKEN: "{{ gitlab_api_token }}"
+    return_content: yes
+  register: jobs_response
+
+- set_fact:
+    build_job_ids: "{{ jobs_response.json | json_query('[?name==`build`].id') }}"
+
+- debug:
+    var: build_job_ids
+
+- name: Get latest artifact URL from build jobs
+  uri:
+    url: "https://gitlab.example.com/api/v4/projects/{{ gitlab_project_id }}/jobs/{{ item }}/artifacts"
+    headers:
+      PRIVATE-TOKEN: "{{ gitlab_api_token }}"
+    return_content: yes
+  register: artifact_response
+  loop: "{{ build_job_ids }}"
+  when: build_job_ids | length > 0
+
+- debug:
+    var: artifact_response.json
