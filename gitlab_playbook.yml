@@ -1,0 +1,57 @@
+
+- name: Fetch artifact
+  hosts: localhost
+  become: yes
+  vars:
+    gitlab_api_token: "glpat-63m2ynVLoyy2U5CQyjy6"
+    gitlab_project_id: "54120408"
+    artifact_name: "artifacts.zip"
+
+  tasks:
+    - name: Get latest artifact URL
+      uri:
+        url: "https://gitlab.com/api/v4/projects/Yamaha-MT07%2Fdevopstaspeur/jobs"
+        headers:
+          PRIVATE-TOKEN: "{{ gitlab_api_token }}"
+        return_content: yes
+      register: jobs_response
+
+    - set_fact:
+        build_job_id: "{{ jobs_response.json | json_query('[?name==`build`].id') | first }}"
+    
+    - debug:
+        var: build_job_id
+    
+    - name: Get latest artifact URL from build job
+      uri:
+        url: "https://gitlab.com/api/v4/projects/Yamaha-MT07%2Fdevopstaspeur/jobs/{{ build_job_id }}/artifacts"
+        headers:
+          PRIVATE-TOKEN: "{{ gitlab_api_token }}"
+        return_content: yes
+      register: artifact_response
+    
+    - debug:
+        var: artifact_response.json
+
+    - name: Create directory for artifact
+      ansible.builtin.file:
+        path: "/opt/artifact"
+        state: directory
+
+    - name: Save artifact to disk
+      ansible.builtin.copy:
+        content: "{{ artifact_response.content }}"
+        dest: "/opt/artifact/{{ artifact_name }}"
+
+    - name: Unpack artifact
+      ansible.builtin.unarchive:
+        src: "/opt/artifact/{{ artifact_name }}"
+        dest: "/opt/test"
+        remote_src: yes
+
+    - name: Move backend files
+      ansible.builtin.synchronize:
+        src: "/opt/test/backend/"
+        dest: "/var/www/html/"
+        recursive: yes
+        delete: no
