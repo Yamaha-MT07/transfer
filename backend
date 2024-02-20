@@ -37,7 +37,7 @@ server {
 	#
 	# include snippets/snakeoil.conf;
 
-	root /opt/backend_files/back/public;
+	root /var/www/html/public;
 
 	# Add index.php to the list if you are using PHP
 	index index.html index.htm index.nginx-debian.html index.php;
