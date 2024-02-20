@@ -1,0 +1,33 @@
+---
+- name: Fetch and unpack latest artifact from GitLab
+  hosts: your_vm
+  become: yes
+  vars:
+    gitlab_api_token: "your_gitlab_api_token"
+    gitlab_project_id: "your_gitlab_project_id"
+    artifact_name: "your_artifact_name"
+
+  tasks:
+    - name: Get latest artifact URL
+      uri:
+        url: "https://gitlab.com/api/v4/projects/{{ gitlab_project_id }}/jobs/artifacts/master/raw/{{ artifact_name }}?job=build"
+        headers:
+          PRIVATE-TOKEN: "{{ gitlab_api_token }}"
+        return_content: yes
+      register: artifact_response
+
+    - name: Create directory for artifact
+      ansible.builtin.file:
+        path: "/path/to/artifact_directory"
+        state: directory
+
+    - name: Save artifact to disk
+      ansible.builtin.copy:
+        content: "{{ artifact_response.content }}"
+        dest: "/path/to/artifact_directory/{{ artifact_name }}"
+
+    - name: Unpack artifact
+      ansible.builtin.unarchive:
+        src: "/path/to/artifact_directory/{{ artifact_name }}"
+        dest: "/path/to/destination_directory"
+        remote_src: yes
