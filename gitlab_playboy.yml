@@ -8,9 +8,9 @@
     artifact_name: "artifacts.zip"
 
   tasks:
-    - name: Get build job IDs
+    - name: Get latest artifact URL
       uri:
-        url: "https://gitlab.example.com/api/v4/projects/{{ gitlab_project_id }}/jobs"
+        url: "https://gitlab.com/api/v4/projects/Yamaha-MT07%2Fdevopstaspeur/jobs"
         headers:
           PRIVATE-TOKEN: "{{ gitlab_api_token }}"
         return_content: yes
@@ -24,7 +24,7 @@
     
     - name: Get latest artifact URL from build jobs
       uri:
-        url: "https://gitlab.example.com/api/v4/projects/{{ gitlab_project_id }}/jobs/{{ item }}/artifacts"
+        url: "https://gitlab.com/api/v4/projects/Yamaha-MT07%2Fdevopstaspeur/jobs/{{ item }}/artifacts"
         headers:
           PRIVATE-TOKEN: "{{ gitlab_api_token }}"
         return_content: yes
